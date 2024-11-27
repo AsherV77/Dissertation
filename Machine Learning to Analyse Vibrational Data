@@ -1,3 +1,8 @@
+# In my dissertation, I created 36 different iterations of models using 3 ML algorithms (SVM+K-means clustering,
+# RandomForestClassifier and XGBoost) using different parameter tuning and data splitting strategies for training 
+# and testing. Below, you can see an example of a model I trained using SVM and K-means clustering, combining supervised
+# and unsupervised learning for an optimal result
+
 #SVM with K-means Clustering
 #Contains 5 fold cross validation
 
