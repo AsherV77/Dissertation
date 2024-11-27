@@ -1,0 +1,77 @@
+#XGBoost
+#with hyperparameter tuning
+#10 Fold Cross Validation
+
+import pandas as pd
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelEncoder
+import numpy as np
+from xgboost import XGBClassifier
+from sklearn.model_selection import GridSearchCV, cross_val_predict
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+
+file_path = 'Aggregate data for surfaces (120 each).csv'
+
+# Load the dataset
+df = pd.read_csv(file_path)
+
+# Handle the non-numeric target variable using label encoding
+le = LabelEncoder()
+df['Road_Surface_Type'] = le.fit_transform(df['Road_Surface_Type'])
+y = df['Road_Surface_Type'].values  # Ensure y is a numpy array
+
+# Select only numeric columns for imputation
+numeric_cols = df.select_dtypes(include=[np.number]).columns
+imputer = SimpleImputer(strategy='mean')
+df[numeric_cols] = imputer.fit_transform(df[numeric_cols])
+
+# Select features
+features = ['RMS', 'Min', 'Max', 'Average', '20th Percentile', '50th Percentile',
+            '80th percentile', 'Q1', 'Q3', 'IQR', 'Standard Deviation', 'Skew', 'Kurtosis']
+X = df[features].values  # Convert DataFrame to numpy array for X as well
+
+# Define the parameter grid
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [3, 6, 10],
+    'learning_rate': [0.01, 0.1, 0.2],
+    'colsample_bytree': [0.3, 0.7]
+}
+
+# Initialize the XGBClassifier
+xgb = XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
+
+# Instantiate the grid search model
+grid_search = GridSearchCV(estimator=xgb, param_grid=param_grid,
+                           cv=5, n_jobs=-1, verbose=1)
+
+# Perform the grid search
+grid_search.fit(X, y)
+
+# Results
+best_params = grid_search.best_params_
+best_score = grid_search.best_score_
+
+print("Best parameters found: ", best_params)
+print("Best cross-validated score: ", best_score)
+
+# To use the best model from grid search directly:
+best_model = grid_search.best_estimator_
+
+# Perform cross-validation with the best estimator and get predictions using 10-fold CV
+predictions = cross_val_predict(best_model, X, y, cv=10)
+
+# Confusion matrix
+conf_matrix = confusion_matrix(y, predictions)
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues',
+            xticklabels=[1, 2, 3, 4], yticklabels=[1, 2, 3, 4])
+plt.title('Confusion Matrix on Test Set')
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+
+# Print the mean accuracy from the confusion matrix
+mean_accuracy = np.trace(conf_matrix) / float(np.sum(conf_matrix))
+print(f"Mean Accuracy from the confusion matrix with 10-fold CV and hyperparameter tuning: {mean_accuracy}")
