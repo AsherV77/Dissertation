@@ -1,4 +1,4 @@
-#CODE VERSION 1
+#SVM with K-means Clustering
 #Contains 5 fold cross validation
 
 import pandas as pd
