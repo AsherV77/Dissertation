@@ -1,0 +1,88 @@
+#Random Forest Classifier
+#80/20 Training split
+#Hyperparameter tuning
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.impute import SimpleImputer
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the dataset
+file_path = 'Aggregate data for surfaces (120 each).csv'
+
+# Read the CSV file into a DataFrame
+df = pd.read_csv(file_path)
+
+# Check for NaN values in the DataFrame
+if df.isnull().values.any():
+    print('NaN values found in the DataFrame:')
+    # Display the count of NaN values per column
+    print(df.isnull().sum())
+else:
+    print('No NaN values found in the DataFrame')
+
+# List of features
+features = ['RMS', 'Min', 'Max', 'Average', '20th Percentile', '50th Percentile',
+            '80th percentile', 'Q1', 'Q3', 'IQR', 'Standard Deviation', 'Skew', 'Kurtosis']
+
+# Select features and target variable
+X = df[features]
+y = df['Road_Surface_Type']
+
+# Convert y to a numeric type if it's not already
+y = pd.to_numeric(y, errors='coerce')
+
+# Handle NaN values in the features with an imputer
+imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+X_imputed = pd.DataFrame(imputer.fit_transform(X), columns=X.columns)
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X_imputed, y, test_size=0.2, random_state=42)
+
+# Hyperparameter grid
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 10, 20, 30],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4],
+    'bootstrap': [True, False]
+}
+
+# Initialize the GridSearchCV object
+grid_search = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, cv=5, verbose=2, n_jobs=-1)
+
+# Fit GridSearchCV
+grid_search.fit(X_train, y_train)
+
+# Best parameters and score
+print("Best parameters found:", grid_search.best_params_)
+print("Best score:", grid_search.best_score_)
+
+# Train the Random Forest model with the best parameters
+best_model = grid_search.best_estimator_
+best_model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = best_model.predict(X_test)
+
+# Calculate and print the accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy with Best Model: {accuracy}")
+
+# Calculate the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix with Best Model:")
+print(cm)
+
+# Plot the confusion matrix
+sns.set()  # Set Seaborn style for the plot
+plt.figure(figsize=(10, 7))  # Set the figure size
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')  # Create the heatmap
+plt.title('Confusion Matrix with Best Model')
+plt.xlabel('Predicted Labels')
+plt.ylabel('True Labels')
+plt.show()
