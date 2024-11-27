@@ -11,5 +11,8 @@ After iterating through the 36 different ML models combining these different fac
 and K-means clustering which was capable of real-time analysis (under 700ms) and over 98% accuracy!; A highly impressive achievement with 
 regards to similar studies that have been done to develop ML models for analysing road surface condition. 😲
 
-In my repository I have a few examples of models that I developed using the different training factors and algorithms. Please 
-feel free to have a look 😁
+In my repository I have a few examples of models that I developed using the different training factors and algorithms. Please feel free to have a look 😁
+
+The files labelled ".ipynb" are full versions showing each different iteration of the models I trained using different algorithm (XGBoost, Random Forest or SVM + K-means clustering)
+
+The files labelled "Model example" are isolated examples to show a snapshot of how I worked with the different algorithms to classify my data.
