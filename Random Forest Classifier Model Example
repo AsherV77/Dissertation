@@ -1,3 +1,6 @@
+# Here is an example of a model I trained using a Random Forest algorithm, it is one of 12 iterations I did to 
+# see which model (of the Random Forest iterations) would be the fastest and most accurate
+
 #Random Forest Classifier
 #80/20 Training split
 #Hyperparameter tuning
